@@ -1,0 +1,11 @@
+name: Feature request or new sensor
+description: Suggest an improvement or support for a sensor model.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: request
+    attributes:
+      label: What would you like?
+      description: Describe the use case. For a new sensor, name the model code and the first two characters of its ID; attach the diagnostics download rather than raw API output.
+    validations:
+      required: true

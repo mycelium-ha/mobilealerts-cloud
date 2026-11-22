@@ -1,0 +1,18 @@
+# Keeps GitHub Actions and the pinned test tooling current. Updates of
+# pytest-homeassistant-custom-component bump Home Assistant core: review snapshot
+# changes like code (AGENTS.md section 6).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    # The minimum-HA pins must stay at the minimum (ADR-001); bump them only
+    # together with hacs.json, through /bump-ha.
+    exclude-paths:
+      - requirements_test_min_ha.txt

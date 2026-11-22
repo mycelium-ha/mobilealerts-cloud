@@ -1,0 +1,28 @@
+name: Validate & Test
+
+# Shared Mycelium HA validation (mycelium-ha/.github): hassfest, Marketplace/HACS,
+# ruff, translation parity, mypy, pytest with the coverage gate, and pytest on
+# the minimum supported Home Assistant.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    uses: mycelium-ha/.github/.github/workflows/ha-validate.yml@main
+    with:
+      hacs_category: integration
+      run_mypy: true
+      run_pytest: true
+      pytest_args: --cov --cov-report=term
+      min_ha_requirements_file: requirements_test_min_ha.txt

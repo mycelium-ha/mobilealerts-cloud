@@ -1,0 +1,27 @@
+# Local hooks use the tool versions pinned in requirements_test.txt, so pre-commit,
+# CI and `/check-quality` always agree. Setup: `pip install pre-commit && pre-commit install`.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy (strict)
+        entry: mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: translations
+        name: translation parity
+        entry: python3 scripts/check_translations.py
+        language: system
+        files: ^custom_components/mobilealerts_cloud/(strings\.json|translations/)
+        pass_filenames: false

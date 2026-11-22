@@ -1,0 +1,397 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Mobile Alerts Cloud instellen",
+        "description": "Maak een Mobile Alerts Cloud-hub aan die alle geconfigureerde sensoren in één gebundeld REST API-verzoek ophaalt.",
+        "data": {
+          "name": "Hubnaam",
+          "import_legacy_devices": "Sensoren importeren uit verouderde mobile_alerts",
+          "device_ids": "Initiële sensor-ID's (optioneel)",
+          "scan_interval": "Poll-interval (minuten)",
+          "name_prefix": "Voorvoegsel apparaatnaam (optioneel)",
+          "phone_id": "Phone ID (optioneel)",
+          "send_phone_id": "Phone ID meesturen met verzoeken (optioneel)"
+        },
+        "data_description": {
+          "import_legacy_devices": "Importeert automatisch alle gevonden sensoren uit een bestaande mobile_alerts-installatie (laat oude vermeldingen intact om veilig naast elkaar te testen).",
+          "device_ids": "Door komma's of nieuwe regels gescheiden 12-tekens hex sensor-ID's (bijv. 0100005B2E9D, 0800009D3B7E). Laat leeg om later toe te voegen.",
+          "scan_interval": "Update-interval in minuten (1–1440). Standaard 10 minuten om API-limieten te respecteren.",
+          "name_prefix": "Optioneel voorvoegsel voor apparaatnamen (bijv. 'Test ' om naast elkaar te testen).",
+          "phone_id": "Optioneel numeriek Phone ID van de Mobile Alerts-app.",
+          "send_phone_id": "Standaard uitgeschakeld om HTTP 400-fouten bij niet-gekoppelde sensoren te voorkomen.",
+          "name": "Weergavenaam van de hub in Home Assistant."
+        }
+      },
+      "reconfigure": {
+        "title": "Mobile Alerts Cloud-hub opnieuw configureren",
+        "description": "Werk de optionele Phone ID-instellingen voor deze Mobile Alerts Cloud-hub bij.",
+        "data": {
+          "phone_id": "Phone ID (optioneel)",
+          "send_phone_id": "Phone ID meesturen met verzoeken (optioneel)"
+        },
+        "data_description": {
+          "phone_id": "Optioneel numeriek Phone ID van de Mobile Alerts-app.",
+          "send_phone_id": "Standaard uitgeschakeld om HTTP 400-fouten bij niet-gekoppelde sensoren te voorkomen."
+        }
+      }
+    },
+    "error": {
+      "invalid_phone_id": "Phone ID moet uit 6 tot 20 cijfers bestaan",
+      "invalid_device_id_format": "Elke sensor-ID moet exact 12 hexadecimale tekens (0-9, A-F) bevatten",
+      "already_configured": "Een of meer sensor-ID's zijn al geconfigureerd op een Mobile Alerts Cloud-hub",
+      "device_not_found": "Een of meer sensor-ID's zijn niet gevonden in de Mobile Alerts API-respons",
+      "device_offline_no_data": "Sensor is offline of heeft nog geen meetgegevens verzonden",
+      "rate_limited": "API-snelheidslimiet bereikt (max. 3 verzoeken/min per sensor). Wacht even en probeer opnieuw.",
+      "ip_blocked": "De Mobile Alerts API heeft dit IP tijdelijk geblokkeerd (HTTP 403). Wacht 15 minuten.",
+      "cannot_connect": "Kan geen verbinding maken met de Mobile Alerts REST API",
+      "api_error": "De Mobile Alerts API heeft een foutmelding geretourneerd",
+      "unknown": "Onverwachte fout"
+    },
+    "abort": {
+      "reconfigure_successful": "Herconfiguratie voltooid"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Mobile Alerts Cloud Hub-opties",
+        "description": "Pas poll-interval en naamvoorvoegsel aan.",
+        "data": {
+          "scan_interval": "Poll-interval (minuten)",
+          "name_prefix": "Voorvoegsel apparaatnaam (optioneel)"
+        },
+        "data_description": {
+          "scan_interval": "Update-interval in minuten (1–1440).",
+          "name_prefix": "Voorvoegsel dat voor alle apparaatnamen van deze hub wordt geplaatst."
+        }
+      }
+    }
+  },
+  "config_subentries": {
+    "sensor": {
+      "entry_type": "Sensor",
+      "initiate_flow": {
+        "user": "Sensor toevoegen",
+        "reconfigure": "Sensor bewerken"
+      },
+      "step": {
+        "user": {
+          "title": "Mobile Alerts-sensor toevoegen",
+          "description": "Voer de 12-tekens hexadecimale ID in die op uw Mobile Alerts- of TFA WeatherHub-sensor staat.",
+          "data": {
+            "device_id": "Sensor-ID",
+            "name": "Naam (optioneel)",
+            "model_override": "Hardwareprofiel"
+          },
+          "data_description": {
+            "device_id": "12-tekens hex sensor-ID (bijv. 0800009D3B7E).",
+            "name": "Optionele weergavenaam van het apparaat in Home Assistant.",
+            "model_override": "Laat op Automatisch staan, tenzij uw ID04-sensor een kabeltemperatuursonde gebruikt in plaats van een waterdetector."
+          }
+        },
+        "reconfigure": {
+          "title": "Mobile Alerts-sensor bewerken",
+          "description": "Werk de naam of het hardwareprofiel voor sensor {device_id} bij.",
+          "data": {
+            "name": "Naam",
+            "model_override": "Hardwareprofiel"
+          },
+          "data_description": {
+            "model_override": "Laat op Automatisch staan tenzij een handmatig profiel nodig is.",
+            "name": "Weergavenaam van dit sensorapparaat."
+          }
+        }
+      },
+      "error": {
+        "invalid_device_id_format": "Sensor-ID moet exact 12 hexadecimale tekens (0-9, A-F) bevatten",
+        "device_not_found": "Sensor-ID is niet gevonden in de Mobile Alerts API-respons",
+        "device_offline_no_data": "Sensor is offline of heeft nog geen meetgegevens verzonden",
+        "rate_limited": "API-snelheidslimiet bereikt (max. 3 verzoeken/min per sensor). Wacht even en probeer opnieuw.",
+        "ip_blocked": "De Mobile Alerts API heeft dit IP tijdelijk geblokkeerd (HTTP 403). Wacht 15 minuten.",
+        "cannot_connect": "Kan geen verbinding maken met de Mobile Alerts REST API",
+        "api_error": "De Mobile Alerts API heeft een foutmelding geretourneerd",
+        "unknown": "Onverwachte fout"
+      },
+      "abort": {
+        "already_configured": "Deze sensor is al op deze hub geconfigureerd",
+        "reconfigure_successful": "Sensor bijgewerkt"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature": {
+        "name": "Temperatuur"
+      },
+      "temperature_t1": {
+        "name": "Temperatuur 1"
+      },
+      "temperature_t2": {
+        "name": "Temperatuur 2"
+      },
+      "temperature_t3": {
+        "name": "Temperatuur 3"
+      },
+      "temperature_t4": {
+        "name": "Temperatuur 4"
+      },
+      "cable_temperature": {
+        "name": "Kabeltemperatuur"
+      },
+      "external_temperature": {
+        "name": "Buitentemperatuur"
+      },
+      "pool_temperature": {
+        "name": "Zwembadtemperatuur"
+      },
+      "humidity": {
+        "name": "Luchtvochtigheid"
+      },
+      "humidity_1": {
+        "name": "Luchtvochtigheid 1"
+      },
+      "humidity_2": {
+        "name": "Luchtvochtigheid 2"
+      },
+      "humidity_3": {
+        "name": "Luchtvochtigheid 3"
+      },
+      "humidity_4": {
+        "name": "Luchtvochtigheid 4"
+      },
+      "humidity_3h_avg": {
+        "name": "Luchtvochtigheid (3u gem.)"
+      },
+      "humidity_24h_avg": {
+        "name": "Luchtvochtigheid (24u gem.)"
+      },
+      "humidity_7d_avg": {
+        "name": "Luchtvochtigheid (7d gem.)"
+      },
+      "humidity_30d_avg": {
+        "name": "Luchtvochtigheid (30d gem.)"
+      },
+      "pressure": {
+        "name": "Luchtdruk"
+      },
+      "co2": {
+        "name": "CO₂"
+      },
+      "rain": {
+        "name": "Neerslag totaal"
+      },
+      "rain_flips": {
+        "name": "Regenwip-teller"
+      },
+      "rain_last_increment": {
+        "name": "Laatste neerslagstap"
+      },
+      "wind_speed": {
+        "name": "Windsnelheid"
+      },
+      "wind_gust": {
+        "name": "Windstoot"
+      },
+      "wind_direction": {
+        "name": "Windrichting",
+        "state": {
+          "n": "N",
+          "nne": "NNO",
+          "ne": "NO",
+          "ene": "ONO",
+          "e": "O",
+          "ese": "OZO",
+          "se": "ZO",
+          "sse": "ZZO",
+          "s": "Z",
+          "ssw": "ZZW",
+          "sw": "ZW",
+          "wsw": "WZW",
+          "w": "W",
+          "wnw": "WNW",
+          "nw": "NW",
+          "nnw": "NNW"
+        }
+      },
+      "wind_direction_degrees": {
+        "name": "Windrichting (graden)"
+      },
+      "key_press_1_count": {
+        "name": "Knop 1 teller"
+      },
+      "key_press_2_count": {
+        "name": "Knop 2 teller"
+      },
+      "key_press_3_count": {
+        "name": "Knop 3 teller"
+      },
+      "key_press_4_count": {
+        "name": "Knop 4 teller"
+      },
+      "last_seen": {
+        "name": "Laatst gezien"
+      }
+    },
+    "binary_sensor": {
+      "battery": {
+        "name": "Batterij"
+      },
+      "water": {
+        "name": "Water gedetecteerd"
+      },
+      "contact": {
+        "name": "Contact"
+      },
+      "ac_power": {
+        "name": "Netspanning"
+      },
+      "smoke_1": {
+        "name": "Rookmelder 1"
+      },
+      "smoke_2": {
+        "name": "Rookmelder 2"
+      },
+      "smoke_3": {
+        "name": "Rookmelder 3"
+      },
+      "smoke_4": {
+        "name": "Rookmelder 4"
+      }
+    },
+    "event": {
+      "button_1": {
+        "name": "Knop 1",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Kort ingedrukt",
+              "double_press": "Dubbel ingedrukt",
+              "long_press": "Lang ingedrukt"
+            }
+          }
+        }
+      },
+      "button_2": {
+        "name": "Knop 2",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Kort ingedrukt",
+              "double_press": "Dubbel ingedrukt",
+              "long_press": "Lang ingedrukt"
+            }
+          }
+        }
+      },
+      "button_3": {
+        "name": "Knop 3",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Kort ingedrukt",
+              "double_press": "Dubbel ingedrukt",
+              "long_press": "Lang ingedrukt"
+            }
+          }
+        }
+      },
+      "button_4": {
+        "name": "Knop 4",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Kort ingedrukt",
+              "double_press": "Dubbel ingedrukt",
+              "long_press": "Lang ingedrukt"
+            }
+          }
+        }
+      }
+    }
+  },
+  "services": {
+    "dump_raw_response": {
+      "name": "Ruwe API-respons exporteren",
+      "description": "Retourneert gecachte of nieuw opgehaalde ruwe Mobile Alerts REST API JSON-gegevens voor geladen hubs.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Hub",
+          "description": "De Mobile Alerts Cloud-hub die gebruikt wordt. Leeg laten voor alle geladen hubs."
+        },
+        "refresh": {
+          "name": "Vernieuwen via API",
+          "description": "Haalt verse metingen op via de API vóór het exporteren (met inachtneming van snelheidslimieten)."
+        }
+      }
+    },
+    "force_refresh": {
+      "name": "Vernieuwing forceren",
+      "description": "Start direct een poll voor geladen Mobile Alerts Cloud-hubs (met rate-limit-beveiliging).",
+      "fields": {
+        "config_entry_id": {
+          "name": "Hub",
+          "description": "De Mobile Alerts Cloud-hub die gebruikt wordt. Leeg laten voor alle geladen hubs."
+        }
+      }
+    },
+    "migrate_from_legacy": {
+      "name": "Migreren vanuit oude mobile_alerts",
+      "description": "Importeert ontbrekende sensoren, apparaatnamen, ruimtes, entiteitsmetadata en Recorder-geschiedenis vanuit mobile_alerts naar Mobile Alerts Cloud.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Hub",
+          "description": "De Mobile Alerts Cloud-hub waarnaar gemigreerd wordt. Verplicht als er meerdere hubs geladen zijn."
+        },
+        "dry_run": {
+          "name": "Alleen voorbeeld (dry run)",
+          "description": "Toont het exacte migratieplan zonder vermeldingen, apparaten of entiteiten te wijzigen."
+        },
+        "cutover": {
+          "name": "Overname (oude vermeldingen verwijderen & geschiedenis behouden)",
+          "description": "Indien ingeschakeld zonder dry run worden oude mobile_alerts-vermeldingen verwijderd en overeenkomende sensor-entity-ID's overgenomen."
+        },
+        "device_ids": {
+          "name": "Filter op sensor-ID's (optioneel)",
+          "description": "Optionele door komma's of nieuwe regels gescheiden 12-tekens hex sensor-ID's voor selectieve migratie."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_loaded_entries": {
+      "message": "Er is geen Mobile Alerts Cloud-hub geladen."
+    },
+    "entry_not_loaded": {
+      "message": "De Mobile Alerts Cloud-configuratie-invoer {entry_id} is niet geladen."
+    },
+    "multiple_entries_loaded": {
+      "message": "Er is meer dan één Mobile Alerts Cloud-hub geladen. Kies de hub die gebruikt moet worden."
+    },
+    "invalid_device_ids": {
+      "message": "{count} van de opgegeven sensor-ID's bestaan niet uit 12 hexadecimale tekens."
+    },
+    "update_failed": {
+      "message": "Ophalen van gegevens via de Mobile Alerts API is mislukt: {error}"
+    },
+    "legacy_import_failed": {
+      "message": "De Mobile Alerts API kon niet worden bevraagd voor {count} legacy-sensoren: {error}"
+    },
+    "refresh_failed": {
+      "message": "De Mobile Alerts-API gaf geen nieuwe gegevens voor {hubs} (verbindingsfout of aanvraaglimiet). De laatste waarden blijven behouden; probeer het over een paar minuten opnieuw."
+    }
+  },
+  "selector": {
+    "model_override": {
+      "options": {
+        "auto": "Automatisch (op basis van het voorvoegsel van de sensor-ID)"
+      }
+    }
+  },
+  "issues": {
+    "sensor_missing": {
+      "title": "Sensor {sensor} wordt niet meer geleverd door de Mobile Alerts API",
+      "description": "De Mobile Alerts API heeft sensor {sensor} van hub {hub} al meer dan 24 uur niet geleverd. Controleer of de sensor nog bij je gateway is aangemeld en of de ID klopt. Gebruik je hem niet meer, verwijder dan de sensor uit de hub. Deze melding verdwijnt zodra de API de sensor weer levert."
+    }
+  }
+}

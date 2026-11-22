@@ -1,0 +1,49 @@
+dump_raw_response:
+  name: Dump raw API response
+  description: Return cached or freshly fetched raw Mobile Alerts REST API JSON payloads for loaded hub entries.
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: mobilealerts_cloud
+    refresh:
+      name: Refresh from API
+      description: Fetch fresh measurements from the API before dumping (subject to per-sensor rate limits).
+      default: false
+      selector:
+        boolean:
+
+force_refresh:
+  name: Force refresh
+  description: Trigger an immediate coordinator poll for loaded Mobile Alerts Cloud hub entries (guarded by rate limiting).
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: mobilealerts_cloud
+
+migrate_from_legacy:
+  name: Migrate from legacy mobile_alerts
+  description: Import missing sensors, device names, areas, entity metadata, and Recorder history from the legacy mobile_alerts integration into Mobile Alerts Cloud.
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: mobilealerts_cloud
+    dry_run:
+      name: Preview only (dry run)
+      description: Inspect the exact migration plan without modifying entries, devices, or entities. Run a preview before applying changes.
+      default: true
+      selector:
+        boolean:
+    cutover:
+      name: Cutover (remove legacy entries & preserve entity IDs / history)
+      description: When disabled (side-by-side mode), only metadata is copied. When enabled (with dry_run=false), legacy mobile_alerts entries are removed and sensor entity IDs are renamed for seamless history continuity.
+      default: false
+      selector:
+        boolean:
+    device_ids:
+      name: Sensor IDs filter (optional)
+      description: Optional comma- or newline-separated 12-character hex sensor IDs to migrate selectively. Leave empty to process all legacy sensors.
+      selector:
+        text:

@@ -1,0 +1,397 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Konfiguracja Mobile Alerts Cloud",
+        "description": "Utwórz koncentrator Mobile Alerts Cloud odpytujący wszystkie skonfigurowane czujniki w jednym zbiorczym żądaniu REST API.",
+        "data": {
+          "name": "Nazwa koncentratora",
+          "import_legacy_devices": "Importuj czujniki ze starszej integracji mobile_alerts",
+          "device_ids": "Początkowe ID czujników (opcjonalnie)",
+          "scan_interval": "Interwał odświeżania (minuty)",
+          "name_prefix": "Prefiks nazwy urządzenia (opcjonalnie)",
+          "phone_id": "Phone ID (opcjonalnie)",
+          "send_phone_id": "Wysyłaj Phone ID w żądaniach (opcjonalnie)"
+        },
+        "data_description": {
+          "import_legacy_devices": "Automatycznie importuje wszystkie czujniki znalezione w istniejącej instalacji mobile_alerts (pozostawia stare wpisy nienaruszone do testów równoległych).",
+          "device_ids": "12-znakowe szesnastkowe ID czujników oddzielone przecinkami lub nowymi liniami (np. 0100005B2E9D). Zostaw puste, aby dodać je później.",
+          "scan_interval": "Interwał odpytywania w minutach (1–1440). Domyślnie 10 minut w celu ochrony przed limitami API.",
+          "name_prefix": "Opcjonalny prefiks dodawany do nazw urządzeń (np. 'Test ' do testów równoległych).",
+          "phone_id": "Opcjonalny numeryczny Phone ID aplikacji Mobile Alerts.",
+          "send_phone_id": "Domyślnie wyłączone, aby uniknąć błędów HTTP 400 na niepowiązanych czujnikach.",
+          "name": "Nazwa huba wyświetlana w Home Assistant."
+        }
+      },
+      "reconfigure": {
+        "title": "Rekonfiguracja koncentratora Mobile Alerts Cloud",
+        "description": "Zaktualizuj opcjonalne ustawienia Phone ID dla tego koncentratora Mobile Alerts Cloud.",
+        "data": {
+          "phone_id": "Phone ID (opcjonalnie)",
+          "send_phone_id": "Wysyłaj Phone ID w żądaniach (opcjonalnie)"
+        },
+        "data_description": {
+          "phone_id": "Opcjonalny numeryczny Phone ID aplikacji Mobile Alerts.",
+          "send_phone_id": "Domyślnie wyłączone, aby uniknąć błędów HTTP 400 na niepowiązanych czujnikach."
+        }
+      }
+    },
+    "error": {
+      "invalid_phone_id": "Phone ID musi składać się z od 6 do 20 cyfr",
+      "invalid_device_id_format": "Każde ID czujnika musi składać się dokładnie z 12 znaków szesnastkowych (0-9, A-F)",
+      "already_configured": "Co najmniej jedno ID czujnika jest już skonfigurowane w koncentratorze Mobile Alerts Cloud",
+      "device_not_found": "Co najmniej jedno ID czujnika nie zostało zwrócone przez API Mobile Alerts",
+      "device_offline_no_data": "Czujnik jest offline lub nie przesłał jeszcze żadnych pomiarów",
+      "rate_limited": "Przekroczono limit zapytań API (maks. 3/min na czujnik). Poczekaj i spróbuj ponownie.",
+      "ip_blocked": "API Mobile Alerts tymczasowo zablokowało ten adres IP (HTTP 403). Poczekaj 15 minut.",
+      "cannot_connect": "Nie można połączyć się z REST API Mobile Alerts",
+      "api_error": "API Mobile Alerts zwróciło błąd",
+      "unknown": "Nieoczekiwany błąd"
+    },
+    "abort": {
+      "reconfigure_successful": "Rekonfiguracja zakończona pomyślnie"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opcje koncentratora Mobile Alerts Cloud",
+        "description": "Dostosuj interwał odpytywania oraz prefiks nazw.",
+        "data": {
+          "scan_interval": "Interwał odświeżania (minuty)",
+          "name_prefix": "Prefiks nazwy urządzenia (opcjonalnie)"
+        },
+        "data_description": {
+          "scan_interval": "Interwał odpytywania w minutach (1–1440).",
+          "name_prefix": "Prefiks dodawany przed nazwami wszystkich czujników tego koncentratora."
+        }
+      }
+    }
+  },
+  "config_subentries": {
+    "sensor": {
+      "entry_type": "Czujnik",
+      "initiate_flow": {
+        "user": "Dodaj czujnik",
+        "reconfigure": "Edytuj czujnik"
+      },
+      "step": {
+        "user": {
+          "title": "Dodaj czujnik Mobile Alerts",
+          "description": "Wprowadź 12-znakowy kod szesnastkowy umieszczony na czujniku Mobile Alerts lub TFA WeatherHub.",
+          "data": {
+            "device_id": "ID czujnika",
+            "name": "Nazwa (opcjonalnie)",
+            "model_override": "Profil sprzętowy"
+          },
+          "data_description": {
+            "device_id": "12-znakowe szesnastkowe ID czujnika (np. 0800009D3B7E).",
+            "name": "Opcjonalna przyjazna nazwa urządzenia w Home Assistant.",
+            "model_override": "Pozostaw Automatycznie, chyba że czujnik ID04 używa sondy kablowej zamiast czujnika zalania."
+          }
+        },
+        "reconfigure": {
+          "title": "Edytuj czujnik Mobile Alerts",
+          "description": "Zaktualizuj nazwę lub profil sprzętowy dla czujnika {device_id}.",
+          "data": {
+            "name": "Nazwa",
+            "model_override": "Profil sprzętowy"
+          },
+          "data_description": {
+            "model_override": "Pozostaw Automatycznie, jeśli ręczny wybór profilu nie jest wymagany.",
+            "name": "Nazwa wyświetlana tego czujnika."
+          }
+        }
+      },
+      "error": {
+        "invalid_device_id_format": "ID czujnika musi mieć dokładnie 12 znaków szesnastkowych (0-9, A-F)",
+        "device_not_found": "Nie znaleziono ID czujnika w odpowiedzi API Mobile Alerts",
+        "device_offline_no_data": "Czujnik jest offline lub nie przesłał jeszcze żadnych pomiarów",
+        "rate_limited": "Przekroczono limit zapytań API (maks. 3/min na czujnik). Poczekaj i spróbuj ponownie.",
+        "ip_blocked": "API Mobile Alerts tymczasowo zablokowało ten adres IP (HTTP 403). Poczekaj 15 minut.",
+        "cannot_connect": "Nie można połączyć się z REST API Mobile Alerts",
+        "api_error": "API Mobile Alerts zwróciło błąd",
+        "unknown": "Nieoczekiwany błąd"
+      },
+      "abort": {
+        "already_configured": "Ten czujnik jest już skonfigurowany w tym koncentratorze",
+        "reconfigure_successful": "Czujnik zaktualizowany pomyślnie"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature": {
+        "name": "Temperatura"
+      },
+      "temperature_t1": {
+        "name": "Temperatura 1"
+      },
+      "temperature_t2": {
+        "name": "Temperatura 2"
+      },
+      "temperature_t3": {
+        "name": "Temperatura 3"
+      },
+      "temperature_t4": {
+        "name": "Temperatura 4"
+      },
+      "cable_temperature": {
+        "name": "Temperatura sondy kablowej"
+      },
+      "external_temperature": {
+        "name": "Temperatura zewnętrzna"
+      },
+      "pool_temperature": {
+        "name": "Temperatura basenu"
+      },
+      "humidity": {
+        "name": "Wilgotność"
+      },
+      "humidity_1": {
+        "name": "Wilgotność 1"
+      },
+      "humidity_2": {
+        "name": "Wilgotność 2"
+      },
+      "humidity_3": {
+        "name": "Wilgotność 3"
+      },
+      "humidity_4": {
+        "name": "Wilgotność 4"
+      },
+      "humidity_3h_avg": {
+        "name": "Wilgotność (śr. 3h)"
+      },
+      "humidity_24h_avg": {
+        "name": "Wilgotność (śr. 24h)"
+      },
+      "humidity_7d_avg": {
+        "name": "Wilgotność (śr. 7d)"
+      },
+      "humidity_30d_avg": {
+        "name": "Wilgotność (śr. 30d)"
+      },
+      "pressure": {
+        "name": "Ciśnienie atmosferyczne"
+      },
+      "co2": {
+        "name": "CO₂"
+      },
+      "rain": {
+        "name": "Suma opadów"
+      },
+      "rain_flips": {
+        "name": "Licznik impulsów deszczu"
+      },
+      "rain_last_increment": {
+        "name": "Ostatni przyrost opadów"
+      },
+      "wind_speed": {
+        "name": "Prędkość wiatru"
+      },
+      "wind_gust": {
+        "name": "Poryw wiatru"
+      },
+      "wind_direction": {
+        "name": "Kierunek wiatru",
+        "state": {
+          "n": "N",
+          "nne": "NNE",
+          "ne": "NE",
+          "ene": "ENE",
+          "e": "E",
+          "ese": "ESE",
+          "se": "SE",
+          "sse": "SSE",
+          "s": "S",
+          "ssw": "SSW",
+          "sw": "SW",
+          "wsw": "WSW",
+          "w": "W",
+          "wnw": "WNW",
+          "nw": "NW",
+          "nnw": "NNW"
+        }
+      },
+      "wind_direction_degrees": {
+        "name": "Kierunek wiatru (stopnie)"
+      },
+      "key_press_1_count": {
+        "name": "Licznik przycisku 1"
+      },
+      "key_press_2_count": {
+        "name": "Licznik przycisku 2"
+      },
+      "key_press_3_count": {
+        "name": "Licznik przycisku 3"
+      },
+      "key_press_4_count": {
+        "name": "Licznik przycisku 4"
+      },
+      "last_seen": {
+        "name": "Ostatnio widziany"
+      }
+    },
+    "binary_sensor": {
+      "battery": {
+        "name": "Bateria"
+      },
+      "water": {
+        "name": "Wykryto wodę"
+      },
+      "contact": {
+        "name": "Kontakt"
+      },
+      "ac_power": {
+        "name": "Zasilanie sieciowe"
+      },
+      "smoke_1": {
+        "name": "Czujnik dymu 1"
+      },
+      "smoke_2": {
+        "name": "Czujnik dymu 2"
+      },
+      "smoke_3": {
+        "name": "Czujnik dymu 3"
+      },
+      "smoke_4": {
+        "name": "Czujnik dymu 4"
+      }
+    },
+    "event": {
+      "button_1": {
+        "name": "Przycisk 1",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Krótkie naciśnięcie",
+              "double_press": "Podwójne naciśnięcie",
+              "long_press": "Długie naciśnięcie"
+            }
+          }
+        }
+      },
+      "button_2": {
+        "name": "Przycisk 2",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Krótkie naciśnięcie",
+              "double_press": "Podwójne naciśnięcie",
+              "long_press": "Długie naciśnięcie"
+            }
+          }
+        }
+      },
+      "button_3": {
+        "name": "Przycisk 3",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Krótkie naciśnięcie",
+              "double_press": "Podwójne naciśnięcie",
+              "long_press": "Długie naciśnięcie"
+            }
+          }
+        }
+      },
+      "button_4": {
+        "name": "Przycisk 4",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Krótkie naciśnięcie",
+              "double_press": "Podwójne naciśnięcie",
+              "long_press": "Długie naciśnięcie"
+            }
+          }
+        }
+      }
+    }
+  },
+  "services": {
+    "dump_raw_response": {
+      "name": "Zrzuć surową odpowiedź API",
+      "description": "Zwraca buforowane lub świeżo pobrane surowe dane JSON z REST API Mobile Alerts dla załadowanych koncentratorów.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Hub",
+          "description": "Hub Mobile Alerts Cloud do użycia. Pozostaw puste dla wszystkich załadowanych hubów."
+        },
+        "refresh": {
+          "name": "Odśwież z API",
+          "description": "Pobiera świeże pomiary z API przed zrzutem (z uwzględnieniem limitów zapytań)."
+        }
+      }
+    },
+    "force_refresh": {
+      "name": "Wymuś odświeżenie",
+      "description": "Wyzwala natychmiastowe odpytanie dla załadowanych koncentratorów Mobile Alerts Cloud (z ochroną limitów API).",
+      "fields": {
+        "config_entry_id": {
+          "name": "Hub",
+          "description": "Hub Mobile Alerts Cloud do użycia. Pozostaw puste dla wszystkich załadowanych hubów."
+        }
+      }
+    },
+    "migrate_from_legacy": {
+      "name": "Migruj ze starszego mobile_alerts",
+      "description": "Importuje brakujące czujniki, nazwy urządzeń, obszary, metadane encji oraz historię Recorder z mobile_alerts do Mobile Alerts Cloud.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Hub",
+          "description": "Hub Mobile Alerts Cloud, do którego nastąpi migracja. Wymagany, gdy załadowano kilka hubów."
+        },
+        "dry_run": {
+          "name": "Tylko podgląd (dry run)",
+          "description": "Wyświetla dokładny plan migracji bez modyfikowania wpisów, urządzeń ani encji."
+        },
+        "cutover": {
+          "name": "Pełne przełączenie (usuń stare wpisy i zachowaj historię)",
+          "description": "Gdy włączone z wyłączonym dry_run, usuwa stare wpisy mobile_alerts i zmienia nazwy pasujących entity_id dla ciągłości historii."
+        },
+        "device_ids": {
+          "name": "Filtr ID czujników (opcjonalnie)",
+          "description": "Opcjonalne 12-znakowe szesnastkowe ID czujników oddzielone przecinkami lub nowymi liniami do selektywnej migracji."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_loaded_entries": {
+      "message": "Nie załadowano żadnego huba Mobile Alerts Cloud."
+    },
+    "entry_not_loaded": {
+      "message": "Wpis konfiguracji Mobile Alerts Cloud {entry_id} nie jest załadowany."
+    },
+    "multiple_entries_loaded": {
+      "message": "Załadowano więcej niż jeden hub Mobile Alerts Cloud. Wybierz hub do użycia."
+    },
+    "invalid_device_ids": {
+      "message": "{count} z podanych identyfikatorów czujników nie składa się z 12 znaków szesnastkowych."
+    },
+    "update_failed": {
+      "message": "Pobieranie danych z API Mobile Alerts nie powiodło się: {error}"
+    },
+    "legacy_import_failed": {
+      "message": "Nie udało się odpytać API Mobile Alerts dla {count} starszych czujników: {error}"
+    },
+    "refresh_failed": {
+      "message": "API Mobile Alerts nie zwróciło nowych danych dla {hubs} (błąd połączenia lub limit zapytań). Ostatnie wartości zostają zachowane; spróbuj ponownie za kilka minut."
+    }
+  },
+  "selector": {
+    "model_override": {
+      "options": {
+        "auto": "Automatycznie (według prefiksu identyfikatora czujnika)"
+      }
+    }
+  },
+  "issues": {
+    "sensor_missing": {
+      "title": "API Mobile Alerts nie zwraca już czujnika {sensor}",
+      "description": "API Mobile Alerts nie zwraca czujnika {sensor} huba {hub} od ponad 24 godzin. Sprawdź, czy czujnik jest nadal zarejestrowany w bramce i czy jego identyfikator jest poprawny. Jeśli już go nie używasz, usuń czujnik z huba. To zgłoszenie zniknie, gdy API ponownie zwróci czujnik."
+    }
+  }
+}

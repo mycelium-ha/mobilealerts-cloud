@@ -1,0 +1,211 @@
+{
+  "live_captured_shapes": {
+    "ID01": {
+      "deviceid": "010000AABB01",
+      "lastseen": 1795117837,
+      "lowbattery": false,
+      "measurement": {
+        "idx": 238325,
+        "ts": 1795117832,
+        "c": 1795117837,
+        "lb": false,
+        "t1": 21.2,
+        "t2": 8.3
+      }
+    },
+    "ID03": {
+      "deviceid": "030000AABB03",
+      "lastseen": 1795117937,
+      "lowbattery": false,
+      "measurement": {
+        "idx": 167890,
+        "ts": 1795117931,
+        "c": 1795117937,
+        "lb": false,
+        "t1": 19.3,
+        "h": 58.0
+      }
+    },
+    "ID08": {
+      "deviceid": "080000AABB08",
+      "lastseen": 1795114158,
+      "lowbattery": false,
+      "measurement": {
+        "idx": 13702,
+        "ts": 1795099827,
+        "c": 1795099833,
+        "lb": false,
+        "sc": true,
+        "t1": 10.6,
+        "r": 1196.862,
+        "rf": 4639,
+        "rr": 0.258
+      }
+    },
+    "ID11": {
+      "deviceid": "110000AABB11",
+      "lastseen": 1795117842,
+      "lowbattery": false,
+      "measurement": {
+        "idx": 6058755,
+        "ts": 1795117838,
+        "c": 1795117842,
+        "t1": 20.8,
+        "t2": 8.8,
+        "t3": 21.1,
+        "t4": 19.6,
+        "h1": 53.0,
+        "h2": 82.0,
+        "h3": 62.0,
+        "h4": 57.0
+      }
+    }
+  },
+  "all_documented_profiles": {
+    "ID01": {
+      "deviceid": "010000AABB01",
+      "lastseen": 1795117837,
+      "lowbattery": false,
+      "measurement": {"idx": 101, "ts": 1795117832, "c": 1795117837, "lb": false, "t1": 21.2, "t2": 8.3}
+    },
+    "ID02": {
+      "deviceid": "020000AABB02",
+      "lastseen": 1795117800,
+      "lowbat": false,
+      "measurement": {"idx": 102, "ts": 1795117795, "c": 1795117800, "t1": 23.4}
+    },
+    "ID03": {
+      "deviceid": "030000AABB03",
+      "lastseen": 1795117937,
+      "lowbattery": false,
+      "measurement": {"idx": 103, "ts": 1795117931, "c": 1795117937, "lb": false, "t1": 19.3, "h": 58.0}
+    },
+    "ID04": {
+      "deviceid": "040000AABB04",
+      "lastseen": 1795117810,
+      "lowbat": false,
+      "measurement": {"idx": 104, "ts": 1795117805, "c": 1795117810, "t1": 21.5, "t2": 1, "h": 49.2}
+    },
+    "ID05": {
+      "deviceid": "050000AABB05",
+      "lastseen": 1795117820,
+      "lowbat": false,
+      "measurement": {"idx": 105, "ts": 1795117815, "c": 1795117820, "t1": 22.0, "t2": 18.5, "h": 45.0, "ppm": 815.0}
+    },
+    "ID06": {
+      "deviceid": "060000AABB06",
+      "lastseen": 1795117830,
+      "lowbat": false,
+      "measurement": {"idx": 106, "ts": 1795117825, "c": 1795117830, "t1": 23.4, "t2": 26.1, "h": 52.0}
+    },
+    "ID07": {
+      "deviceid": "070000AABB07",
+      "lastseen": 1795117840,
+      "lowbat": false,
+      "measurement": {"idx": 107, "ts": 1795117835, "c": 1795117840, "t1": 23.4, "t2": 12.4, "h": 53.8, "h2": 71.5}
+    },
+    "ID08": {
+      "deviceid": "080000AABB08",
+      "lastseen": 1795114158,
+      "lowbattery": false,
+      "measurement": {"idx": 108, "ts": 1795099827, "c": 1795099833, "lb": false, "sc": true, "t1": 10.6, "r": 1196.862, "rf": 4639, "rr": 0.258}
+    },
+    "ID09": {
+      "deviceid": "090000AABB09",
+      "lastseen": 1795117850,
+      "lowbat": false,
+      "measurement": {"idx": 109, "ts": 1795117845, "c": 1795117850, "t1": 20.1, "t2": 5.4, "h": 55.0}
+    },
+    "ID0A": {
+      "deviceid": "0A0000AABB0A",
+      "lastseen": 1795117860,
+      "lowbat": false,
+      "measurement": {"idx": 110, "ts": 1795117855, "c": 1795117860, "t1": 20.3, "a1": false, "a2": true, "a3": false, "a4": false}
+    },
+    "ID0B": {
+      "deviceid": "0B0000AABB0B",
+      "lastseen": 1795117870,
+      "lowbat": false,
+      "measurement": {"idx": 111, "ts": 1795117865, "c": 1795117870, "ws": 4.2, "wg": 8.7, "wd": 6}
+    },
+    "ID0E": {
+      "deviceid": "0E0000AABB0E",
+      "lastseen": 1795117880,
+      "lowbat": false,
+      "measurement": {"idx": 112, "ts": 1795117875, "c": 1795117880, "t1": 22.8, "h": 47.0}
+    },
+    "ID0F": {
+      "deviceid": "0F0000AABB0F",
+      "lastseen": 1795117890,
+      "lowbat": false,
+      "measurement": {"idx": 113, "ts": 1795117885, "c": 1795117890, "t1": 21.0, "t2": -4.5}
+    },
+    "ID10": {
+      "deviceid": "100000AABB10",
+      "lastseen": 1795117900,
+      "lowbat": false,
+      "measurement": {"idx": 114, "ts": 1795117895, "c": 1795117900, "w": true}
+    },
+    "ID11": {
+      "deviceid": "110000AABB11",
+      "lastseen": 1795117842,
+      "lowbattery": false,
+      "measurement": {"idx": 115, "ts": 1795117838, "c": 1795117842, "t1": 20.8, "t2": 8.8, "t3": 21.1, "t4": 19.6, "h1": 53.0, "h2": 82.0, "h3": 62.0, "h4": 57.0}
+    },
+    "ID12": {
+      "deviceid": "120000AABB12",
+      "lastseen": 1795117910,
+      "lowbat": false,
+      "measurement": {"idx": 116, "ts": 1795117905, "c": 1795117910, "t1": 22.2, "h": 43.0, "h3havg": 41.0, "h24havg": 41.0, "h7davg": 40.0, "h30davg": 38.0}
+    },
+    "ID15": {
+      "deviceid": "150000AABB15",
+      "lastseen": 1795117920,
+      "lowbat": false,
+      "measurement": {"idx": 117, "ts": 1795117915, "c": 1795117920, "kp1t": 1, "kp1c": 22, "kp2t": 2, "kp2c": 13, "kp3t": 3, "kp3c": 7, "kp4t": 0, "kp4c": 8, "sc": true}
+    },
+    "ID17": {
+      "deviceid": "170000AABB17",
+      "lastseen": 1795117930,
+      "lowbat": false,
+      "measurement": {"idx": 118, "ts": 1795117925, "c": 1795117930, "t1": 26.9, "t2": 0.0}
+    },
+    "ID18": {
+      "deviceid": "180000AABB18",
+      "lastseen": 1795117940,
+      "lowbat": false,
+      "measurement": {"idx": 119, "ts": 1795117935, "c": 1795117940, "t1": 23.4, "h": 53.8, "ap": 1019.8}
+    },
+    "ID20": {
+      "deviceid": "200000AABB20",
+      "lastseen": 1795117950,
+      "lowbat": false,
+      "measurement": {"idx": 120, "ts": 1795117945, "c": 1795117950, "t1": 18.4}
+    }
+  },
+  "edge_cases": {
+    "sentinels_and_lowbat": {
+      "deviceid": "110000AABB99",
+      "lastseen": 1795118000,
+      "lowbat": true,
+      "measurement": {
+        "idx": 999,
+        "ts": 1795117990,
+        "c": 1795117995,
+        "t1": 21.0,
+        "t2": 43530,
+        "t3": 65295,
+        "t4": 65296,
+        "h1": 50.0,
+        "h2": 43530,
+        "h3": 65295,
+        "h4": 55.0
+      }
+    },
+    "api_error_response": {
+      "success": false,
+      "errorcode": 1,
+      "errormessage": "Some error message"
+    }
+  }
+}

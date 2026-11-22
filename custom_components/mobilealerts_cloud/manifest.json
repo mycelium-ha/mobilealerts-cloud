@@ -1,0 +1,18 @@
+{
+  "domain": "mobilealerts_cloud",
+  "name": "Mobile Alerts Cloud",
+  "categories": [
+    "weather_alerts"
+  ],
+  "codeowners": [
+    "@mycelium-ha/maintainers"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/mycelium-ha/mobilealerts-cloud",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/mycelium-ha/mobilealerts-cloud/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

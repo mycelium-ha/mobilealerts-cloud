@@ -1,0 +1,71 @@
+[project]
+name = "mobilealerts-cloud"
+version = "1.0.0"
+description = "Technoline Mobile Alerts and TFA WeatherHub sensors in Home Assistant, built on the official Mobile Alerts REST API."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.14"
+dependencies = [
+    "aiohttp>=3.9.0",
+]
+
+[project.optional-dependencies]
+# Test dependencies are pinned in requirements_test.txt.
+dev = [
+    "pytest-homeassistant-custom-component",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
+
+[tool.mypy]
+# Strict typing for the whole integration, HA layer included (Platinum: strict-typing).
+python_version = "3.14"
+files = ["custom_components/mobilealerts_cloud"]
+strict = true
+follow_imports = "silent"
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+# Home Assistant re-exports names without `__all__`.
+module = ["homeassistant.*"]
+implicit_reexport = true
+
+[tool.coverage.run]
+source = ["custom_components/mobilealerts_cloud"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 95
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "I", "UP", "B", "SIM",
+    "ASYNC",  # blocking calls in async code
+    "BLE",    # blind except
+    "C4",     # comprehensions
+    "DTZ",    # naive datetimes
+    "FURB",   # modern idioms
+    "G",      # logging format (%s, no f-strings)
+    "LOG",    # logging misuse
+    "PERF",   # performance anti-patterns
+    "PIE",
+    "RET",
+    "RUF",
+]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["custom_components"]

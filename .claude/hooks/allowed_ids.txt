@@ -1,0 +1,7 @@
+# 12-hex values the commit guard (guard_bash.py) accepts besides <prefix>0000xxxxxx
+# fixture IDs. Every entry needs a reason. Never add a real sensor or phone ID.
+AAAAAAAAAAAA  # obviously fake placeholder in tests
+100000000001  # test phone ID (digits only, invented)
+100000000002  # test phone ID (digits only, invented)
+990011223344  # test phone ID (digits only)
+0B1234567890  # anonymiser test input

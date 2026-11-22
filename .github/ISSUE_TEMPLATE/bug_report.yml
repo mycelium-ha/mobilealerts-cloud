@@ -1,0 +1,45 @@
+name: Bug report
+description: Something does not work as described in the README.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please **never post sensor IDs, phone IDs or the output of `mobilealerts_cloud.dump_raw_response`**: anyone who knows a sensor ID can read its data. The diagnostics download replaces all IDs with aliases and is safe to attach.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Mobile Alerts Cloud version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: "2026.11.2"
+    validations:
+      required: true
+  - type: input
+    id: sensors
+    attributes:
+      label: Affected sensor models
+      description: Model codes such as MA 10200, or the first two characters of the sensor ID (for example "08"). Not the full ID.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Settings → Devices & services → Mobile Alerts Cloud → ⋮ → Download diagnostics. Drag the file here.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log messages
+      description: Relevant lines from the Home Assistant log, ideally with debug logging enabled for the integration.
+      render: text

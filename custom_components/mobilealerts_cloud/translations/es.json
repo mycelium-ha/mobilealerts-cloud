@@ -1,0 +1,397 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurar Mobile Alerts Cloud",
+        "description": "Crea un hub Mobile Alerts Cloud que consulta todos los sensores configurados en una única petición REST API agrupada.",
+        "data": {
+          "name": "Nombre del hub",
+          "import_legacy_devices": "Importar sensores de la integración antigua mobile_alerts",
+          "device_ids": "ID de sensores iniciales (opcional)",
+          "scan_interval": "Intervalo de sondeo (minutos)",
+          "name_prefix": "Prefijo de nombre de dispositivo (opcional)",
+          "phone_id": "Phone ID (opcional)",
+          "send_phone_id": "Enviar Phone ID en las peticiones (opcional)"
+        },
+        "data_description": {
+          "import_legacy_devices": "Importa automáticamente todos los sensores detectados en una instalación existente de mobile_alerts (deja las entradas antiguas intactas para probar en paralelo).",
+          "device_ids": "ID de sensor hexadecimales de 12 caracteres separados por comas o saltos de línea (ej. 0100005B2E9D). Déjalo vacío para añadirlos después.",
+          "scan_interval": "Intervalo de actualización en minutos (1–1440). Por defecto 10 minutos para respetar los límites de la API.",
+          "name_prefix": "Prefijo opcional añadido delante del nombre de los dispositivos (ej. 'Test ' para pruebas en paralelo).",
+          "phone_id": "Phone ID numérico opcional de la aplicación Mobile Alerts.",
+          "send_phone_id": "Desactivado por defecto para evitar errores HTTP 400 en sensores no vinculados.",
+          "name": "Nombre del hub que se muestra en Home Assistant."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurar hub Mobile Alerts Cloud",
+        "description": "Actualiza los ajustes opcionales del Phone ID de este hub Mobile Alerts Cloud.",
+        "data": {
+          "phone_id": "Phone ID (opcional)",
+          "send_phone_id": "Enviar Phone ID en las peticiones (opcional)"
+        },
+        "data_description": {
+          "phone_id": "Phone ID numérico opcional de la aplicación Mobile Alerts.",
+          "send_phone_id": "Desactivado por defecto para evitar errores HTTP 400 en sensores no vinculados."
+        }
+      }
+    },
+    "error": {
+      "invalid_phone_id": "El Phone ID debe tener entre 6 y 20 dígitos",
+      "invalid_device_id_format": "Cada ID de sensor debe tener exactamente 12 caracteres hexadecimales (0-9, A-F)",
+      "already_configured": "Uno o más ID de sensor ya están configurados en un hub Mobile Alerts Cloud",
+      "device_not_found": "Uno o más ID de sensor no fueron devueltos por la API de Mobile Alerts",
+      "device_offline_no_data": "El sensor está desconectado o aún no ha enviado mediciones",
+      "rate_limited": "Límite de peticiones de la API alcanzado (máx. 3 por minuto por sensor). Espera e inténtalo de nuevo.",
+      "ip_blocked": "La API de Mobile Alerts bloqueó temporalmente esta IP (HTTP 403). Espera 15 minutos.",
+      "cannot_connect": "No se pudo conectar con la API REST de Mobile Alerts",
+      "api_error": "La API de Mobile Alerts devolvió un error",
+      "unknown": "Error inesperado"
+    },
+    "abort": {
+      "reconfigure_successful": "Reconfiguración completada"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones del hub Mobile Alerts Cloud",
+        "description": "Ajusta el intervalo de sondeo y el prefijo de nombre.",
+        "data": {
+          "scan_interval": "Intervalo de sondeo (minutos)",
+          "name_prefix": "Prefijo de nombre de dispositivo (opcional)"
+        },
+        "data_description": {
+          "scan_interval": "Intervalo de actualización en minutos (1–1440).",
+          "name_prefix": "Prefijo añadido delante de los nombres de todos los sensores de este hub."
+        }
+      }
+    }
+  },
+  "config_subentries": {
+    "sensor": {
+      "entry_type": "Sensor",
+      "initiate_flow": {
+        "user": "Añadir sensor",
+        "reconfigure": "Editar sensor"
+      },
+      "step": {
+        "user": {
+          "title": "Añadir sensor Mobile Alerts",
+          "description": "Introduce el ID hexadecimal de 12 caracteres impreso en tu sensor Mobile Alerts o TFA WeatherHub.",
+          "data": {
+            "device_id": "ID del sensor",
+            "name": "Nombre (opcional)",
+            "model_override": "Perfil de hardware"
+          },
+          "data_description": {
+            "device_id": "ID hexadecimal de 12 caracteres (ej. 0800009D3B7E).",
+            "name": "Nombre amigable opcional en Home Assistant.",
+            "model_override": "Mantén Automático salvo que tu sensor ID04 use sonda de temperatura por cable en lugar de detector de agua."
+          }
+        },
+        "reconfigure": {
+          "title": "Editar sensor Mobile Alerts",
+          "description": "Actualiza el nombre o el perfil de hardware para el sensor {device_id}.",
+          "data": {
+            "name": "Nombre",
+            "model_override": "Perfil de hardware"
+          },
+          "data_description": {
+            "model_override": "Mantén Automático salvo que necesites un perfil manual.",
+            "name": "Nombre que se muestra para este sensor."
+          }
+        }
+      },
+      "error": {
+        "invalid_device_id_format": "El ID del sensor debe tener exactamente 12 caracteres hexadecimales (0-9, A-F)",
+        "device_not_found": "No se encontró el ID del sensor en la respuesta de la API de Mobile Alerts",
+        "device_offline_no_data": "El sensor está desconectado o aún no ha enviado mediciones",
+        "rate_limited": "Límite de peticiones de la API alcanzado (máx. 3 por minuto por sensor). Espera e inténtalo de nuevo.",
+        "ip_blocked": "La API de Mobile Alerts bloqueó temporalmente esta IP (HTTP 403). Espera 15 minutos.",
+        "cannot_connect": "No se pudo conectar con la API REST de Mobile Alerts",
+        "api_error": "La API de Mobile Alerts devolvió un error",
+        "unknown": "Error inesperado"
+      },
+      "abort": {
+        "already_configured": "Este sensor ya está configurado en este hub",
+        "reconfigure_successful": "Sensor actualizado correctamente"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature": {
+        "name": "Temperatura"
+      },
+      "temperature_t1": {
+        "name": "Temperatura 1"
+      },
+      "temperature_t2": {
+        "name": "Temperatura 2"
+      },
+      "temperature_t3": {
+        "name": "Temperatura 3"
+      },
+      "temperature_t4": {
+        "name": "Temperatura 4"
+      },
+      "cable_temperature": {
+        "name": "Temperatura de sonda"
+      },
+      "external_temperature": {
+        "name": "Temperatura exterior"
+      },
+      "pool_temperature": {
+        "name": "Temperatura de piscina"
+      },
+      "humidity": {
+        "name": "Humedad"
+      },
+      "humidity_1": {
+        "name": "Humedad 1"
+      },
+      "humidity_2": {
+        "name": "Humedad 2"
+      },
+      "humidity_3": {
+        "name": "Humedad 3"
+      },
+      "humidity_4": {
+        "name": "Humedad 4"
+      },
+      "humidity_3h_avg": {
+        "name": "Humedad (prom. 3h)"
+      },
+      "humidity_24h_avg": {
+        "name": "Humedad (prom. 24h)"
+      },
+      "humidity_7d_avg": {
+        "name": "Humedad (prom. 7d)"
+      },
+      "humidity_30d_avg": {
+        "name": "Humedad (prom. 30d)"
+      },
+      "pressure": {
+        "name": "Presión atmosférica"
+      },
+      "co2": {
+        "name": "CO₂"
+      },
+      "rain": {
+        "name": "Lluvia total"
+      },
+      "rain_flips": {
+        "name": "Contador de basculaciones"
+      },
+      "rain_last_increment": {
+        "name": "Último incremento de lluvia"
+      },
+      "wind_speed": {
+        "name": "Velocidad del viento"
+      },
+      "wind_gust": {
+        "name": "Ráfaga de viento"
+      },
+      "wind_direction": {
+        "name": "Dirección del viento",
+        "state": {
+          "n": "N",
+          "nne": "NNE",
+          "ne": "NE",
+          "ene": "ENE",
+          "e": "E",
+          "ese": "ESE",
+          "se": "SE",
+          "sse": "SSE",
+          "s": "S",
+          "ssw": "SSO",
+          "sw": "SO",
+          "wsw": "OSO",
+          "w": "O",
+          "wnw": "ONO",
+          "nw": "NO",
+          "nnw": "NNO"
+        }
+      },
+      "wind_direction_degrees": {
+        "name": "Dirección del viento (grados)"
+      },
+      "key_press_1_count": {
+        "name": "Contador botón 1"
+      },
+      "key_press_2_count": {
+        "name": "Contador botón 2"
+      },
+      "key_press_3_count": {
+        "name": "Contador botón 3"
+      },
+      "key_press_4_count": {
+        "name": "Contador botón 4"
+      },
+      "last_seen": {
+        "name": "Última conexión"
+      }
+    },
+    "binary_sensor": {
+      "battery": {
+        "name": "Batería"
+      },
+      "water": {
+        "name": "Agua detectada"
+      },
+      "contact": {
+        "name": "Contacto"
+      },
+      "ac_power": {
+        "name": "Alimentación CA"
+      },
+      "smoke_1": {
+        "name": "Detector de humo 1"
+      },
+      "smoke_2": {
+        "name": "Detector de humo 2"
+      },
+      "smoke_3": {
+        "name": "Detector de humo 3"
+      },
+      "smoke_4": {
+        "name": "Detector de humo 4"
+      }
+    },
+    "event": {
+      "button_1": {
+        "name": "Botón 1",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Pulsación corta",
+              "double_press": "Doble pulsación",
+              "long_press": "Pulsación larga"
+            }
+          }
+        }
+      },
+      "button_2": {
+        "name": "Botón 2",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Pulsación corta",
+              "double_press": "Doble pulsación",
+              "long_press": "Pulsación larga"
+            }
+          }
+        }
+      },
+      "button_3": {
+        "name": "Botón 3",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Pulsación corta",
+              "double_press": "Doble pulsación",
+              "long_press": "Pulsación larga"
+            }
+          }
+        }
+      },
+      "button_4": {
+        "name": "Botón 4",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short_press": "Pulsación corta",
+              "double_press": "Doble pulsación",
+              "long_press": "Pulsación larga"
+            }
+          }
+        }
+      }
+    }
+  },
+  "services": {
+    "dump_raw_response": {
+      "name": "Volcar respuesta API sin procesar",
+      "description": "Devuelve los payloads JSON sin procesar en caché o recién obtenidos de la API REST de Mobile Alerts.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Hub",
+          "description": "El hub de Mobile Alerts Cloud que se usará. Déjalo vacío para todos los hubs cargados."
+        },
+        "refresh": {
+          "name": "Actualizar desde la API",
+          "description": "Obtiene mediciones recientes desde la API antes de exportar (sujeto a límites de frecuencia)."
+        }
+      }
+    },
+    "force_refresh": {
+      "name": "Forzar actualización",
+      "description": "Inicia una consulta inmediata para los hubs Mobile Alerts Cloud cargados (protegido contra límites de tasa).",
+      "fields": {
+        "config_entry_id": {
+          "name": "Hub",
+          "description": "El hub de Mobile Alerts Cloud que se usará. Déjalo vacío para todos los hubs cargados."
+        }
+      }
+    },
+    "migrate_from_legacy": {
+      "name": "Migrar desde el antiguo mobile_alerts",
+      "description": "Importa sensores faltantes, nombres de dispositivos, áreas, metadatos e historial de Recorder desde mobile_alerts hacia Mobile Alerts Cloud.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Hub",
+          "description": "El hub de Mobile Alerts Cloud al que se migra. Obligatorio si hay varios hubs cargados."
+        },
+        "dry_run": {
+          "name": "Solo vista previa (dry run)",
+          "description": "Muestra el plan de migración exacto sin modificar entradas, dispositivos ni entidades."
+        },
+        "cutover": {
+          "name": "Transición completa (eliminar antiguo y conservar historial)",
+          "description": "Cuando se activa con dry_run desactivado, elimina las entradas antiguas de mobile_alerts y renombra los entity_id equivalentes para conservar el historial."
+        },
+        "device_ids": {
+          "name": "Filtro de ID de sensores (opcional)",
+          "description": "ID de sensor hexadecimales de 12 caracteres opcionales separados por comas o saltos de línea para migración selectiva."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_loaded_entries": {
+      "message": "No hay ningún hub de Mobile Alerts Cloud cargado."
+    },
+    "entry_not_loaded": {
+      "message": "La entrada de configuración {entry_id} de Mobile Alerts Cloud no está cargada."
+    },
+    "multiple_entries_loaded": {
+      "message": "Hay más de un hub de Mobile Alerts Cloud cargado. Selecciona el hub que se usará."
+    },
+    "invalid_device_ids": {
+      "message": "{count} de los ID de sensor indicados no tienen 12 caracteres hexadecimales."
+    },
+    "update_failed": {
+      "message": "Error al obtener datos de la API de Mobile Alerts: {error}"
+    },
+    "legacy_import_failed": {
+      "message": "No se pudo consultar la API de Mobile Alerts para {count} sensores heredados: {error}"
+    },
+    "refresh_failed": {
+      "message": "La API de Mobile Alerts no devolvió datos nuevos para {hubs} (error de conexión o límite de solicitudes). Se conservan los últimos valores; inténtalo de nuevo en unos minutos."
+    }
+  },
+  "selector": {
+    "model_override": {
+      "options": {
+        "auto": "Automático (por prefijo del ID del sensor)"
+      }
+    }
+  },
+  "issues": {
+    "sensor_missing": {
+      "title": "La API de Mobile Alerts ya no devuelve el sensor {sensor}",
+      "description": "La API de Mobile Alerts no ha devuelto el sensor {sensor} del hub {hub} desde hace más de 24 horas. Comprueba que el sensor sigue registrado en tu gateway y que su ID es correcto. Si ya no lo usas, elimina el sensor del hub. Este aviso desaparece en cuanto la API vuelva a devolver el sensor."
+    }
+  }
+}

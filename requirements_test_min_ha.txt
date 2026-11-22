@@ -1,0 +1,8 @@
+# Test dependencies for the minimum supported Home Assistant (ADR-001: 2026.9.0).
+# pytest-homeassistant-custom-component 0.13.363 pins homeassistant==2026.9.0.
+# Keep this in sync with `homeassistant` in hacs.json when the minimum changes.
+# Dependabot skips this file (`exclude-paths` in .github/dependabot.yml); a bump here
+# would silently stop testing the minimum.
+pytest-homeassistant-custom-component==0.13.363
+pytest-cov==7.1.0
+pyyaml

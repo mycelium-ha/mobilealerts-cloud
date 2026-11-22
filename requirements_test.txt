@@ -1,0 +1,7 @@
+# Test and tooling dependencies. pytest-homeassistant-custom-component pins
+# Home Assistant core (0.13.375 -> HA 2026.10.4), pytest, syrupy and coverage.
+pytest-homeassistant-custom-component==0.13.375
+pytest-cov==7.1.0
+pyyaml
+ruff==0.17.6
+mypy==2.4.1

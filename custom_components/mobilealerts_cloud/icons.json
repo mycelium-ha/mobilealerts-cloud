@@ -1,0 +1,38 @@
+{
+  "entity": {
+    "sensor": {
+      "rain_flips": {
+        "default": "mdi:counter"
+      },
+      "wind_direction": {
+        "default": "mdi:compass-outline"
+      },
+      "wind_direction_degrees": {
+        "default": "mdi:compass"
+      },
+      "key_press_1_count": {
+        "default": "mdi:counter"
+      },
+      "key_press_2_count": {
+        "default": "mdi:counter"
+      },
+      "key_press_3_count": {
+        "default": "mdi:counter"
+      },
+      "key_press_4_count": {
+        "default": "mdi:counter"
+      }
+    }
+  },
+  "services": {
+    "dump_raw_response": {
+      "service": "mdi:code-json"
+    },
+    "force_refresh": {
+      "service": "mdi:refresh"
+    },
+    "migrate_from_legacy": {
+      "service": "mdi:database-import"
+    }
+  }
+}

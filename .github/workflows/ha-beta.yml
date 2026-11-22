@@ -1,0 +1,18 @@
+name: Home Assistant beta
+
+# Early warning for upcoming Home Assistant releases: runs the test suite against
+# the newest Home Assistant pre-release every week and on demand.
+on:
+  schedule:
+    - cron: "41 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  beta:
+    uses: mycelium-ha/.github/.github/workflows/ha-beta.yml@main
+    with:
+      # Registry snapshots are pinned to the HA version in requirements_test.txt.
+      pytest_args: -k "not test_platform_snapshot and not test_device_registry_snapshot"

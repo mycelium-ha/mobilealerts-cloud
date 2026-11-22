@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/mycelium-ha/mobilealerts-cloud#readme
+    about: Setup, options, actions, known limitations and troubleshooting.

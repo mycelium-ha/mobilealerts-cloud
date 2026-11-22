@@ -1,0 +1,132 @@
+# Status as of v1.0.0: every Bronze, Silver, Gold and Platinum rule is done or
+# exempt with a reason. A rule set back to `todo` explains what is missing.
+rules:
+  # Bronze
+  action-setup:
+    status: done
+    comment: Actions are registered in async_setup (services.py) and target a hub via config_entry_id.
+  appropriate-polling:
+    status: done
+    comment: Default 10 min (1-1440), one batched request per hub; sensors transmit about every 7 min.
+  brands: done
+  common-modules: done
+  config-flow-test-coverage:
+    status: done
+    comment: >-
+      config_flow.py has 100 % line and branch coverage; every error test continues until the
+      flow creates the entry, proving that it recovers.
+  config-flow:
+    status: done
+    comment: >-
+      Every field has a data_description. The "automatic" profile option is translated;
+      the other options are model codes and product names.
+  dependency-transparency: done
+  docs-actions: done
+  docs-conditions:
+    status: exempt
+    comment: The integration provides no conditions of its own.
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  docs-triggers:
+    status: exempt
+    comment: The integration provides no triggers of its own; the button events are event entities.
+  entity-event-setup:
+    status: exempt
+    comment: Entities are coordinator based and subscribe through CoordinatorEntity.
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data:
+    status: done
+    comment: >-
+      Per-hub objects live in entry.runtime_data. Rate-limit states and the reload cache must
+      survive reloads and sit behind one typed HassKey (ADR-007).
+  test-before-configure: done
+  test-before-setup:
+    status: done
+    comment: The first refresh raises a translated ConfigEntryNotReady on API errors.
+  unique-config-entry:
+    status: done
+    comment: >-
+      ADR-004. Several hubs are allowed on purpose; a sensor ID can be configured only once
+      across all hubs (subentry unique_id, checked in both flows).
+
+  # Silver
+  action-exceptions:
+    status: done
+    comment: >-
+      Actions raise translated ServiceValidationError for bad input and HomeAssistantError when
+      a requested poll gets no new data (refresh_failed).
+  config-entry-unloading: done
+  docs-configuration-parameters: done
+  docs-installation-parameters: done
+  entity-unavailable:
+    status: done
+    comment: Entities are unavailable after a failed poll and when lastseen is older than max(60 min, 3 x poll interval) (ADR-005).
+  integration-owner: done
+  log-when-unavailable:
+    status: done
+    comment: >-
+      The coordinator logs failed polls once; rate limits and stale sensors log one warning and
+      one info on recovery.
+  parallel-updates: done
+  reauthentication-flow:
+    status: exempt
+    comment: The API has no credentials; sensor IDs are entered per subentry.
+  test-coverage:
+    status: done
+    comment: 96 % line and branch coverage against real Home Assistant; CI fails below 95 %.
+
+  # Gold
+  devices:
+    status: done
+    comment: Sensor devices set manufacturer, model, model_id, serial number and via_device_id.
+  diagnostics:
+    status: done
+    comment: >-
+      Config entry and device diagnostics redact phone IDs and replace every sensor ID, short
+      forms included, with a consistent alias; tests/test_diagnostics.py proves no ID remains.
+  discovery:
+    status: exempt
+    comment: Cloud API without local discovery; legacy sensors are offered during setup.
+  discovery-update-info:
+    status: exempt
+    comment: No discovery, no network address to update.
+  docs-data-update: done
+  docs-examples: done
+  docs-known-limitations: done
+  docs-supported-devices: done
+  docs-supported-functions: done
+  docs-troubleshooting: done
+  docs-use-cases: done
+  dynamic-devices:
+    status: done
+    comment: Sensors are added through the subentry flow without restarting (tests/test_config_flow.py).
+  entity-category: done
+  entity-device-class:
+    status: done
+    comment: Wind direction in degrees uses WIND_DIRECTION with MEASUREMENT_ANGLE.
+  entity-disabled-by-default:
+    status: done
+    comment: Rain increment, rain flip counter and press counters (duplicates of the button events) start disabled.
+  entity-translations: done
+  exception-translations: done
+  icon-translations: done
+  reconfiguration-flow: done
+  repair-issues:
+    status: done
+    comment: A sensor the API has not returned for 24 hours raises a repair issue that clears itself.
+  stale-devices:
+    status: done
+    comment: >-
+      Deleting a sensor subentry removes its device (tested); sensors missing from the API get a
+      repair issue; async_remove_config_entry_device allows removing devices of removed sensors.
+
+  # Platinum
+  async-dependency: done
+  inject-websession:
+    status: done
+    comment: MobileAlertsClient requires the shared aiohttp session (async_get_clientsession).
+  strict-typing:
+    status: done
+    comment: mypy --strict passes for the whole integration and runs in CI and pre-commit.
