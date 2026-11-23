@@ -56,11 +56,11 @@ Binding design decisions for `mobilealerts_cloud`. Each record states the decisi
 
 ## ADR-005: Sensors that stop reporting become unavailable
 
-**Status:** Accepted
+**Status:** Accepted, amended by ADR-010 (the 7 minute assumption).
 
-**Context.** A sensor with a dead battery or out of radio range would otherwise keep showing its last value for days (`lastseen` stops moving), which breaks automations silently (`entity-unavailable`). Mobile Alerts sensors transmit roughly every 7 minutes; the server keeps the last measurement.
+**Context.** A sensor with a dead battery or out of radio range would otherwise keep showing its last value for days (`lastseen` stops moving), which breaks automations silently (`entity-unavailable`). Most Mobile Alerts sensors transmit roughly every 7 minutes; the server keeps the last measurement. ADR-010 documents the exception.
 
-**Decision.** A sensor's entities are unavailable when `lastseen` (`max(lastseen, c)`) is older than **max(60 min, 3 × polling interval)**. The diagnostic `last_seen` sensor stays available so users can see when it last reported. One warning per sensor when it goes stale, one info when it recovers (`log-when-unavailable`).
+**Decision.** A sensor's entities are unavailable when `lastseen` (`max(lastseen, c)`) is older than **max(60 min, 3 × polling interval, 2.5 × transmit interval)**; the last term applies only to profiles that declare a transmit interval (ADR-010). The diagnostic `last_seen` sensor stays available so users can see when it last reported. One warning per sensor when it goes stale, one info when it recovers (`log-when-unavailable`).
 
 **Consequences.** Automations see `unavailable` instead of stale values. A sensor missing from a response is treated the same way once its last reading is too old.
 
@@ -109,3 +109,15 @@ Binding design decisions for `mobilealerts_cloud`. Each record states the decisi
 **Decision.** `MobileAlertsCloudData` holds exactly one `RateLimitState`; `get_rate_limit_state(hass)` returns it to every hub, flow, action and the migration. Rejected phone IDs are stored by value (`rejected_phone_ids`), so a new phone ID gets its own chance. The API endpoint is a constant; tests inject the mock URL.
 
 **Consequences.** Per-sensor budgets are unaffected because sensor IDs are unique across hubs (ADR-004), and an IP block stops every request.
+
+---
+
+## ADR-010: Stale threshold per hardware profile
+
+**Status:** Accepted. Amends ADR-005.
+
+**Context.** The rain gauge MA 10650 (profile ID08) has been observed live to transmit about every 2 hours, not every 7 minutes. With the 60 minute threshold of ADR-005 its entities were `unavailable` for about one hour out of every two, which breaks automations that rely on the rain value. Two observations, both from a single installation over about 30 hours: the cadence did not change after a battery replacement, and a few extra readings appeared in short bursts. Whether the specification names a transmit interval for this device is not verified.
+
+**Decision.** `DeviceProfile` declares an optional `transmit_interval_seconds`, set to 7200 for ID08 and unset for all other profiles. The stale threshold of a sensor is `max(60 min, 3 × polling interval, 2.5 × transmit interval)`. It follows the resolved profile, so a model override applies too. The factor 2.5 tolerates one lost transmission plus jitter; a longer silence still makes the entities `unavailable`.
+
+**Consequences.** A dead rain gauge is detected after about 5 hours instead of 1 hour; the diagnostic `last_seen` sensor shows the last report at all times. Other profiles keep the ADR-005 behaviour. Profiles with a transmit interval must be checked against live data before they are set. Re-evaluate the value when more data is available.

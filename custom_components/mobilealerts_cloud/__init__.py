@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigSubentry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
@@ -133,6 +134,19 @@ def get_fresh_cached_reading(
     return None
 
 
+def _transmit_intervals(sensor_subentries: Sequence[ConfigSubentry]) -> dict[str, int]:
+    """Return the transmit interval of every sensor whose profile declares one (ADR-010)."""
+    intervals: dict[str, int] = {}
+    for sub in sensor_subentries:
+        dev_id = normalize_device_id(str(sub.data[CONF_DEVICE_ID]))
+        profile = resolve_device_profile(
+            dev_id, model_override=str(sub.data.get(CONF_MODEL_OVERRIDE, CONF_MODEL_AUTO))
+        )
+        if profile.transmit_interval_seconds is not None:
+            intervals[dev_id] = profile.transmit_interval_seconds
+    return intervals
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Register the domain actions once, independent of config entries."""
     async_setup_services(hass)
@@ -187,6 +201,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MobileAlertsCloudConfigE
             normalize_device_id(str(sub.data[CONF_DEVICE_ID])): (sub.subentry_id, sub.title)
             for sub in sensor_subentries
         },
+        transmit_intervals=_transmit_intervals(sensor_subentries),
     )
     _delete_orphaned_issues(hass)
 

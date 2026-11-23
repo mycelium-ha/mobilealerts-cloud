@@ -92,7 +92,7 @@ Before the hub is created, every sensor ID is checked locally and then with one 
 
 | Option | Default | What it does |
 |---|---|---|
-| **Polling interval (minutes)** | `10` | As in the setup form. The stale threshold follows it (see [Supported devices](#supported-hardware-prefixes-id01id20)). |
+| **Polling interval (minutes)** | `10` | As in the setup form. The stale threshold follows it, and the rain gauge has its own longer threshold (see [Availability](#how-data-is-updated)). |
 | **Device name prefix** | empty | As in the setup form. Applies to all sensor devices of the hub. |
 
 **Reconfigure** on the hub changes the **Phone ID** and **Send Phone ID with requests** settings.
@@ -110,11 +110,11 @@ Before the hub is created, every sensor ID is checked locally and then with one 
 
 Mobile Alerts sensors send their values by radio to the Mobile Alerts gateway, which uploads them to the Mobile Alerts cloud. Mobile Alerts Cloud never talks to the gateway; it reads the latest values from the official cloud API.
 
-- **Polling:** every polling interval (10 minutes by default) the hub sends **one** request for all of its sensors. Most sensors transmit about every 7 minutes, so a shorter interval rarely gives fresher values and a longer one is fine for slow-changing values such as temperature.
+- **Polling:** every polling interval (10 minutes by default) the hub sends **one** request for all of its sensors. Most sensors transmit about every 7 minutes, so a shorter interval rarely gives fresher values and a longer one is fine for slow-changing values such as temperature. The rain gauge transmits about every 2 hours.
 - **Force refresh:** the `mobilealerts_cloud.force_refresh` action polls right away, for example from an automation.
 - **Rate limits:** the API allows 3 requests per sensor per minute and blocks a sensor for 7 minutes when this is exceeded (HTTP 429). More than 5 invalid requests from one IP address in 15 minutes block the address for 15 minutes (HTTP 403). The integration counts every request, from polls, setup, actions and the migration, against these limits, refuses requests that would break them and waits out a block. While a poll is rate limited, entities keep their last values and one warning is logged.
 - **Reloads:** a hub reload within 60 seconds of the last poll reuses the last response instead of asking the API again.
-- **Availability:** each reading carries the time the sensor last reported (`lastseen`). When that is older than 60 minutes, or three polling intervals if that is longer, the sensor's entities become `unavailable` until it reports again; its `last_seen` entity stays available. If the API does not return a sensor at all for 24 hours, a repair issue appears.
+- **Availability:** each reading carries the time the sensor last reported (`lastseen`). When that is older than 60 minutes, or three polling intervals if that is longer, the sensor's entities become `unavailable` until it reports again; its `last_seen` entity stays available. The rain gauge (MA 10650) transmits about every 2 hours, so its threshold is at least 5 hours, or three polling intervals if that is longer. If the API does not return a sensor at all for 24 hours, a repair issue appears.
 
 ---
 
@@ -146,7 +146,7 @@ The [migration guide](docs/MIGRATION.md) explains every step, including the chan
 
 Every device also exposes diagnostic **`battery`** (`binary_sensor`, `BATTERY`) and **`last_seen`** (`sensor`, `TIMESTAMP`) entities.
 
-**Availability:** a sensor's entities become `unavailable` when it has not reported for more than 60 minutes, or three poll intervals if that is longer (for example 90 minutes at a 30 minute interval). `last_seen` stays available, so you can see when the sensor last reported. If the API stops returning a sensor for more than 24 hours, a repair issue in **Settings → System → Repairs** points to it.
+**Availability:** a sensor's entities become `unavailable` when it has not reported for more than 60 minutes, or three poll intervals if that is longer (for example 90 minutes at a 30 minute interval). The rain gauge (MA 10650) has a threshold of at least 5 hours, or three poll intervals if that is longer, because it transmits about every 2 hours. `last_seen` stays available, so you can see when the sensor last reported. If the API stops returning a sensor for more than 24 hours, a repair issue in **Settings → System → Repairs** points to it.
 
 **Disabled by default** on new installations: `rr` rain last increment, `rf` rain flip counter and the `kp1c`–`kp4c` press counters (use the button events instead). Enable them on the entity page if you need them.
 
@@ -234,17 +234,19 @@ actions:
 
 ### Notify when a sensor stops reporting
 
+Use a sensor that transmits about every 7 minutes. The example entity `sensor.ma_10101_abcd_temperature_1` assumes the default device name of an MA 10101 and English as the Home Assistant system language; otherwise check the entity ID under **Settings → Devices & services**. The rain gauge (MA 10650) becomes `unavailable` only after at least 5 hours without a report, so do not use the same trigger for it.
+
 ```yaml
 alias: "Mobile Alerts sensor silent"
 triggers:
   - trigger: state
-    entity_id: sensor.ma_10650_abcd_temperature
+    entity_id: sensor.ma_10101_abcd_temperature_1
     to: unavailable
     for: "00:10:00"
 actions:
   - action: notify.notify
     data:
-      message: "The rain gauge has not reported for over an hour."
+      message: "The sensor has not reported for over an hour."
 ```
 
 ### Water leak alert (MA 10350)
@@ -304,7 +306,7 @@ Takes over sensors, names, areas, entity settings and, with cutover, entity IDs 
 ## Known limitations
 
 - **Cloud only.** Values come from the Mobile Alerts cloud. Without internet access, or when the cloud is down, there are no new values; there is no local access to the gateway.
-- **Delayed values.** A value reaches Home Assistant after the sensor's next transmission, the gateway upload and the next poll, typically within one polling interval plus about 7 minutes.
+- **Delayed values.** A value reaches Home Assistant after the sensor's next transmission, the gateway upload and the next poll, typically within one polling interval plus about 7 minutes; for the rain gauge, plus up to about 2 hours.
 - **Button presses between polls.** The API only reports the press counter and the type of the last press. Several presses between two polls show up as one event with the type of the last press, and a press is only seen at the next poll.
 - **Alerts from the app.** Alert settings and alarm flags of the Mobile Alerts app are not used. The API only returns alarm flags with a Phone ID, and it is not yet confirmed whether the smoke detector states of the MA 10860 (`ID0A`) arrive without one.
 - **MA 10350 (`ID04`).** The API documentation describes `t2` as a cable temperature, while the MA 10350 has a water detector. The integration reads it as water; choose the `ID04_CABLE` profile if your unit has a cable probe.

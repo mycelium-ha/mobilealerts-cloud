@@ -26,6 +26,7 @@ from .const import (
     MISSING_SENSOR_REPAIR_SECONDS,
     STALE_MIN_SECONDS,
     STALE_POLL_FACTOR,
+    STALE_TRANSMIT_FACTOR,
 )
 
 if TYPE_CHECKING:
@@ -34,9 +35,14 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def stale_after_seconds(scan_interval_minutes: int) -> float:
-    """Return how old `lastseen` may get before a sensor counts as stale (ADR-005)."""
-    return float(max(STALE_MIN_SECONDS, STALE_POLL_FACTOR * scan_interval_minutes * 60))
+def stale_after_seconds(
+    scan_interval_minutes: int, transmit_interval_seconds: int | None = None
+) -> float:
+    """Return how old `lastseen` may get before a sensor counts as stale (ADR-005, ADR-010)."""
+    limit = float(max(STALE_MIN_SECONDS, STALE_POLL_FACTOR * scan_interval_minutes * 60))
+    if transmit_interval_seconds is not None:
+        limit = max(limit, STALE_TRANSMIT_FACTOR * transmit_interval_seconds)
+    return limit
 
 
 def missing_issue_id(subentry_id: str) -> str:
@@ -73,11 +79,13 @@ class MobileAlertsCoordinator(DataUpdateCoordinator[dict[str, DeviceReading]]):
         scan_interval_minutes: int = DEFAULT_SCAN_INTERVAL_MINUTES,
         on_readings: Callable[[dict[str, DeviceReading]], None] | None = None,
         sensor_titles: Mapping[str, tuple[str, str]] | None = None,
+        transmit_intervals: Mapping[str, int] | None = None,
     ) -> None:
         """Initialize the coordinator.
 
         `sensor_titles` maps a sensor ID to its (subentry ID, title), used for repair issues
-        and log messages that must not contain the sensor ID itself.
+        and log messages that must not contain the sensor ID itself. `transmit_intervals` maps
+        a sensor ID to the seconds between its transmissions, for sensors that send rarely.
         """
         super().__init__(
             hass,
@@ -88,7 +96,8 @@ class MobileAlertsCoordinator(DataUpdateCoordinator[dict[str, DeviceReading]]):
         )
         self.client = client
         self.device_ids: tuple[str, ...] = tuple(dict.fromkeys(device_ids))
-        self.stale_after = stale_after_seconds(scan_interval_minutes)
+        self._scan_interval_minutes = scan_interval_minutes
+        self._transmit_intervals: dict[str, int] = dict(transmit_intervals or {})
         self._on_readings = on_readings
         self._sensor_titles: dict[str, tuple[str, str]] = dict(sensor_titles or {})
         self._stale_ids: set[str] = set()
@@ -153,15 +162,22 @@ class MobileAlertsCoordinator(DataUpdateCoordinator[dict[str, DeviceReading]]):
             return None
         return self.data.get(device_id)
 
+    def stale_after_for(self, device_id: str) -> float:
+        """Return the stale threshold in seconds for one sensor (ADR-005, ADR-010)."""
+        return stale_after_seconds(
+            self._scan_interval_minutes, self._transmit_intervals.get(device_id)
+        )
+
     def is_stale(self, device_id: str) -> bool:
         """Return True when the sensor's last report is older than the stale threshold."""
         reading = self.get_reading(device_id)
-        return self._reading_is_stale(reading)
+        return self._reading_is_stale(device_id, reading)
 
-    def _reading_is_stale(self, reading: DeviceReading | None) -> bool:
+    def _reading_is_stale(self, device_id: str, reading: DeviceReading | None) -> bool:
         if reading is None or reading.last_seen is None:
             return False
-        return dt_util.utcnow().timestamp() - reading.last_seen > self.stale_after
+        age = dt_util.utcnow().timestamp() - reading.last_seen
+        return age > self.stale_after_for(device_id)
 
     def _label(self, device_id: str) -> str:
         """Return a log label for a sensor without its full ID."""
@@ -171,14 +187,14 @@ class MobileAlertsCoordinator(DataUpdateCoordinator[dict[str, DeviceReading]]):
     def _log_stale_transitions(self, readings: Mapping[str, DeviceReading]) -> None:
         """Log one warning when a sensor goes stale and one info when it recovers."""
         for dev_id in self.device_ids:
-            stale = self._reading_is_stale(readings.get(dev_id))
+            stale = self._reading_is_stale(dev_id, readings.get(dev_id))
             if stale and dev_id not in self._stale_ids:
                 self._stale_ids.add(dev_id)
                 _LOGGER.warning(
                     "Sensor %s has not reported for more than %d minutes; its entities are "
                     "unavailable until it reports again",
                     self._label(dev_id),
-                    int(self.stale_after // 60),
+                    int(self.stale_after_for(dev_id) // 60),
                 )
             elif not stale and dev_id in self._stale_ids:
                 self._stale_ids.discard(dev_id)

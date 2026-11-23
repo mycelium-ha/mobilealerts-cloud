@@ -30,8 +30,10 @@ DEFAULT_SEND_PHONE_ID = False
 RELOAD_CACHE_TTL_SECONDS = 60.0
 
 # ADR-005: a sensor is stale when lastseen is older than max(60 min, 3 x poll interval).
+# ADR-010: and at least 2.5 x the hardware's transmit interval where the profile sets one.
 STALE_MIN_SECONDS = 3600
 STALE_POLL_FACTOR = 3
+STALE_TRANSMIT_FACTOR = 2.5
 # A sensor the API has not returned for this long gets a repair issue.
 MISSING_SENSOR_REPAIR_SECONDS = 24 * 3600
 
