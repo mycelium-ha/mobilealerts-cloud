@@ -1,6 +1,6 @@
 [project]
 name = "mobilealerts-cloud"
-version = "1.0.0"
+version = "1.0.1"
 description = "Technoline Mobile Alerts and TFA WeatherHub sensors in Home Assistant, built on the official Mobile Alerts REST API."
 readme = "README.md"
 license = { text = "MIT" }
