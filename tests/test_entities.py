@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -14,10 +15,11 @@ from homeassistant.helpers import entity_registry as er
 from mock_api_server import MockMobileAlertsServer
 from pytest_homeassistant_custom_component.common import MockConfigEntry, async_capture_events
 
-from custom_components.mobilealerts_cloud import binary_sensor, event, sensor
+from custom_components.mobilealerts_cloud import _transmit_intervals, binary_sensor, event, sensor
 from custom_components.mobilealerts_cloud.const import EVENT_KEY_PRESS
+from custom_components.mobilealerts_cloud.coordinator import stale_after_seconds
 
-from .conftest import SENTINEL_ID, entity_id_for, hub_entry
+from .conftest import SENTINEL_ID, entity_id_for, hub_entry, sensor_subentry
 
 
 def _state(hass: HomeAssistant, platform: str, unique_id: str) -> Any:
@@ -235,6 +237,41 @@ async def test_unknown_prefix_uses_dynamic_profile(
     assert _state(hass, "sensor", "990000AABB03_h").state is not None
 
 
+# ID08 (rain gauge, MA 10650) last reported at 18:49:18 UTC on 2026-11-19 (epoch 1795114158).
+RAIN_GAUGE_LAST_SEEN = 1795114158
+
+
+def test_stale_after_combines_poll_interval_and_transmit_interval() -> None:
+    """The threshold is the largest of the 60 minute floor, 3 polls and 2.5 transmit intervals."""
+    assert stale_after_seconds(10) == 3600
+    assert stale_after_seconds(30) == 5400
+    assert stale_after_seconds(10, 7200) == 18000
+    assert stale_after_seconds(10, 300) == 3600
+    assert stale_after_seconds(60, 7200) == 18000  # 3 x 60 min = 3 h < 2.5 x 2 h = 5 h
+
+
+async def test_rain_gauge_stays_available_for_five_hours(
+    hass: HomeAssistant,
+    init_integration: MockConfigEntry,
+    mock_api: MockMobileAlertsServer,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """The rain gauge transmits about every 2 hours, so it stays available up to 5 hours (ADR-010)."""
+    coordinator = init_integration.runtime_data.coordinator
+    assert coordinator.stale_after_for("080000AABB08") == 5 * 3600
+    # 61 minutes after the last report: the 60 minute default would have marked it stale.
+    freezer.move_to("2026-11-19T19:49:40+00:00")
+    await _poll(hass, init_integration)
+    assert _state(hass, "sensor", "080000AABB08_t1").state != STATE_UNAVAILABLE
+    assert _state(hass, "binary_sensor", "080000AABB08_battery").state != STATE_UNAVAILABLE
+
+    # Beyond five hours the sensor counts as stale again, and the diagnostic last_seen stays on.
+    freezer.move_to("2026-11-19T23:49:19+00:00")  # 5 hours and 1 second after the last report
+    await _poll(hass, init_integration)
+    assert _state(hass, "sensor", "080000AABB08_t1").state == STATE_UNAVAILABLE
+    assert _state(hass, "sensor", "080000AABB08_last_seen").state == "2026-11-19T18:49:18+00:00"
+
+
 async def test_stale_sensor_becomes_unavailable_and_recovers(
     hass: HomeAssistant,
     init_integration: MockConfigEntry,
@@ -243,40 +280,110 @@ async def test_stale_sensor_becomes_unavailable_and_recovers(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A sensor whose lastseen is older than max(60 min, 3 x poll) is unavailable (ADR-005)."""
-    # Default poll interval 10 min -> threshold 60 min. ID08 last reported at 18:49:18,
-    # the other fixture sensors at 19:50 or later.
-    assert init_integration.runtime_data.coordinator.stale_after == 3600
+    # Default poll interval 10 min -> threshold 60 min. A 7-minute sensor (ID01) that last
+    # reported at 18:49:18 is stale at 19:49:40; the rain gauge is not (see ADR-010).
+    # lastseen is the max of lastseen and the measurement time c, so both must be old.
+    mock_api.devices["010000AABB01"]["lastseen"] = RAIN_GAUGE_LAST_SEEN
+    mock_api.devices["010000AABB01"]["measurement"]["c"] = RAIN_GAUGE_LAST_SEEN
+    assert init_integration.runtime_data.coordinator.stale_after_for("010000AABB01") == 3600
     freezer.move_to("2026-11-19T19:49:40+00:00")
     await _poll(hass, init_integration)
-    assert _state(hass, "sensor", "080000AABB08_t1").state == STATE_UNAVAILABLE
-    assert _state(hass, "binary_sensor", "080000AABB08_battery").state == STATE_UNAVAILABLE
+    assert _state(hass, "sensor", "010000AABB01_t1").state == STATE_UNAVAILABLE
     # The diagnostic last_seen sensor stays available so users see when it last reported.
-    assert _state(hass, "sensor", "080000AABB08_last_seen").state == "2026-11-19T18:49:18+00:00"
-    # Other sensors reported recently and stay available.
-    assert _state(hass, "sensor", "010000AABB01_t1").state != STATE_UNAVAILABLE
+    assert _state(hass, "sensor", "010000AABB01_last_seen").state == "2026-11-19T18:49:18+00:00"
 
     await _poll(hass, init_integration)
     stale_warnings = [r for r in caplog.records if "has not reported" in r.getMessage()]
     assert len(stale_warnings) == 1
     # Logs name the sensor by its subentry title, never by a bare sensor ID.
-    assert stale_warnings[0].getMessage().startswith("Sensor Sensor 080000AABB08 has not")
+    assert stale_warnings[0].getMessage().startswith("Sensor Sensor 010000AABB01 has not")
 
-    mock_api.devices["080000AABB08"]["lastseen"] = 1795117700  # 19:48:20
+    mock_api.devices["010000AABB01"]["lastseen"] = 1795117700  # 19:48:20
+    mock_api.devices["010000AABB01"]["measurement"]["c"] = 1795117700
     await _poll(hass, init_integration)
-    assert _state(hass, "sensor", "080000AABB08_t1").state == "10.6"
+    assert _state(hass, "sensor", "010000AABB01_t1").state != STATE_UNAVAILABLE
     assert any("reports again" in r.getMessage() for r in caplog.records)
+
+
+def test_transmit_interval_follows_model_override() -> None:
+    """A profile override decides the transmit interval, as it decides the channels (ADR-010)."""
+    subentries = [
+        SimpleNamespace(data={"device_id": "010000AABB01", "model_override": "ID08"}),
+        SimpleNamespace(data={"device_id": "080000AABB08"}),
+        SimpleNamespace(data={"device_id": "010000AABB02", "model_override": "auto"}),
+    ]
+    assert _transmit_intervals(subentries) == {"010000AABB01": 7200, "080000AABB08": 7200}
+
+
+async def test_model_override_to_rain_gauge_extends_stale_threshold(
+    hass: HomeAssistant, mock_api: MockMobileAlertsServer, freezer: FrozenDateTimeFactory
+) -> None:
+    """A model override to ID08 on another prefix makes the entity stale only after 5 hours."""
+    mock_api.devices["010000AABB01"]["lastseen"] = RAIN_GAUGE_LAST_SEEN
+    mock_api.devices["010000AABB01"]["measurement"]["c"] = RAIN_GAUGE_LAST_SEEN
+    template = hub_entry([])  # hub defaults; the one sensor subentry carries the override
+    entry = MockConfigEntry(
+        domain=template.domain,
+        title=template.title,
+        data=dict(template.data),
+        options=dict(template.options),
+        entry_id=template.entry_id,
+        subentries_data=[sensor_subentry("010000AABB01", model_override="ID08")],
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.runtime_data.coordinator.stale_after_for("010000AABB01") == 5 * 3600
+
+    # 61 minutes after the last report: the ID01 default of 60 minutes no longer applies.
+    freezer.move_to("2026-11-19T19:49:40+00:00")
+    await _poll(hass, entry)
+    assert _state(hass, "sensor", "010000AABB01_t1").state != STATE_UNAVAILABLE
+
+    freezer.move_to("2026-11-19T23:49:19+00:00")  # 5 hours and 1 second after the last report
+    await _poll(hass, entry)
+    assert _state(hass, "sensor", "010000AABB01_t1").state == STATE_UNAVAILABLE
+
+
+async def test_rain_gauge_stale_warning_names_five_hours(
+    hass: HomeAssistant,
+    init_integration: MockConfigEntry,
+    mock_api: MockMobileAlertsServer,
+    freezer: FrozenDateTimeFactory,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """The stale warning for the rain gauge states its own 300 minute threshold."""
+
+    def rain_gauge_warnings() -> list[str]:
+        return [
+            r.getMessage()
+            for r in caplog.records
+            if "has not reported" in r.getMessage() and "080000AABB08" in r.getMessage()
+        ]
+
+    # 61 minutes after the last report the rain gauge is still fresh: no warning yet.
+    freezer.move_to("2026-11-19T19:49:40+00:00")
+    await _poll(hass, init_integration)
+    assert rain_gauge_warnings() == []
+
+    # 5 hours and 1 second after the last report: exactly one warning with the 300 minute threshold.
+    freezer.move_to("2026-11-19T23:49:19+00:00")
+    await _poll(hass, init_integration)
+    stale_warnings = rain_gauge_warnings()
+    assert len(stale_warnings) == 1
+    assert "more than 300 minutes" in stale_warnings[0]
 
 
 async def test_stale_threshold_follows_poll_interval(
     hass: HomeAssistant, mock_api: MockMobileAlertsServer
 ) -> None:
     """With a 30 minute poll interval the threshold is 90 minutes."""
-    entry = hub_entry(["080000AABB08"])
+    entry = hub_entry(["010000AABB01"])
     entry.add_to_hass(hass)
     hass.config_entries.async_update_entry(entry, options={**entry.options, "scan_interval": 30})
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    assert entry.runtime_data.coordinator.stale_after == 5400
+    assert entry.runtime_data.coordinator.stale_after_for("010000AABB01") == 5400
 
 
 async def test_rate_limit_warning_logged_once(

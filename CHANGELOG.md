@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- The rain gauge (MA 10650) no longer becomes `unavailable` for about an hour out of every two. It transmits about every 2 hours, so its entities now count as stale only after at least 5 hours without a report, or three polling intervals if that is longer (ADR-010). Other sensors keep the existing rule: 60 minutes or three polling intervals, whichever is longer.
+
 ## [1.0.0] - 2026-11-22
 
 First release of Mobile Alerts Cloud, a Home Assistant integration for Technoline Mobile Alerts and TFA Dostmann WeatherHub sensors, built on the official Mobile Alerts REST API. Requires Home Assistant 2026.9.0 or newer.

@@ -45,9 +45,9 @@ Verify every Home Assistant API mentioned here against the installed HA source b
 
 ## 4. Coordinator and availability
 
-- One `DataUpdateCoordinator` per hub; default interval 10 min (1–1440). Sensors transmit about every 7 min, so shorter intervals rarely add data.
+- One `DataUpdateCoordinator` per hub; default interval 10 min (1–1440). Most sensors transmit about every 7 min, so shorter intervals rarely add data; the rain gauge transmits about every 2 h (ADR-010).
 - On a rate-limit cooldown the coordinator keeps the last readings (entities stay available until the stale-sensor rule applies) and logs one warning, then one info when polls work again. Without any data yet, and for every other API error, it raises a translated `UpdateFailed` (with `retry_after` for rate limits and IP blocks).
-- A sensor omitted from one response keeps its last reading. Entities become unavailable (ADR-005) when `last_seen` is older than max(60 min, 3 × interval); `last_seen` itself stays available. After 24 h without data a `sensor_missing` repair issue is raised and deleted again once the sensor reports.
+- A sensor omitted from one response keeps its last reading. Entities become unavailable (ADR-005) when `last_seen` is older than max(60 min, 3 × interval, 2.5 × transmit interval where the profile declares one, ADR-010); `last_seen` itself stays available. After 24 h without data a `sensor_missing` repair issue is raised and deleted again once the sensor reports.
 
 ## 5. Entities
 

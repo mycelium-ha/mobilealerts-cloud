@@ -56,6 +56,16 @@ def test_all_twenty_documented_prefixes_supported() -> None:
         assert profile.profile_id == prefix_key
 
 
+def test_only_rain_gauge_declares_transmit_interval() -> None:
+    """The MA 10650 rain gauge transmits about every 2 hours (ADR-010); other profiles do not."""
+    rain = resolve_device_profile("080000AABB08")
+    assert rain.profile_id == "ID08"
+    assert rain.transmit_interval_seconds == 7200
+    assert resolve_device_profile("010000AABB01").transmit_interval_seconds is None
+    dynamic = resolve_device_profile("990000AABB99")
+    assert dynamic.transmit_interval_seconds is None
+
+
 def test_id04_default_vs_cable_override() -> None:
     """ID04 defaults to water binary sensor and supports ID04_CABLE temperature override."""
     raw = _load_fixtures()["all_documented_profiles"]["ID04"]

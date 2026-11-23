@@ -7,7 +7,7 @@ rules:
     comment: Actions are registered in async_setup (services.py) and target a hub via config_entry_id.
   appropriate-polling:
     status: done
-    comment: Default 10 min (1-1440), one batched request per hub; sensors transmit about every 7 min.
+    comment: Default 10 min (1-1440), one batched request per hub; most sensors transmit about every 7 min, the rain gauge about every 2 h (ADR-010).
   brands: done
   common-modules: done
   config-flow-test-coverage:
@@ -62,7 +62,7 @@ rules:
   docs-installation-parameters: done
   entity-unavailable:
     status: done
-    comment: Entities are unavailable after a failed poll and when lastseen is older than max(60 min, 3 x poll interval) (ADR-005).
+    comment: Entities are unavailable after a failed poll and when lastseen is older than max(60 min, 3 x poll interval, 2.5 x transmit interval where the profile declares one) (ADR-005, ADR-010).
   integration-owner: done
   log-when-unavailable:
     status: done

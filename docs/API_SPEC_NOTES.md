@@ -10,3 +10,4 @@ Deviations, gaps and live-data observations around the official spec ([PDF](http
 - ID15: `kpXt` 0 = no press, 1 short, 2 double, 3 long; `kpXc` running counter. Polling loses presses between two polls (known limitation).
 - ID17: `t2` 0.0 = AC on, 1.0 = off.
 - Alert flags are only returned with a phone ID (see ADR-003).
+- ID08 (rain gauge, MA 10650): live data shows a transmission about every 2 hours, not every 7 minutes, unchanged after a battery replacement, with occasional short bursts. The stale threshold for this profile follows ADR-010. Whether the spec names an interval is not verified.

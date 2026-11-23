@@ -39,7 +39,7 @@ Binding rules for everyone (humans and AI agents) changing this repository. This
   - Diagnostic entities set `entity_category`; duplicates and rarely used values are disabled by default (new installations only).
   - `PARALLEL_UPDATES = 0` on every platform (one coordinator per hub).
   - No raw API JSON in `extra_state_attributes` (use diagnostics).
-  - Availability follows the coordinator and the sensor's own `lastseen` ([ADR-005](docs/DECISIONS.md)).
+  - Availability follows the coordinator and the sensor's own `lastseen`: stale after max(60 min, 3 × poll interval, 2.5 × transmit interval where the profile declares one) ([ADR-005, ADR-010](docs/DECISIONS.md)).
   - Sentinels `43530` (not connected), `65295` (out of range) and `65296` (seen in live data) become `None`.
 - **Errors:** user-facing exceptions (`HomeAssistantError`, `ServiceValidationError`, `ConfigEntryNotReady`) use `translation_domain=DOMAIN` + `translation_key`; texts live in `strings.json` → `exceptions`. Catch `api/` exceptions at the HA boundary.
 - **Config flow:** every field has `data_description`; specific errors (`cannot_connect`, `rate_limited`, `ip_blocked`, `device_not_found`, `invalid_device_id_format`, `unknown`); reconfigure uses `async_update_and_abort` with the update listener as the only reload owner.

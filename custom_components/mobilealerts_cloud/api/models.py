@@ -184,6 +184,8 @@ class DeviceProfile:
     display_name: str
     manufacturer: str
     channels: tuple[ChannelSpec, ...]
+    # Typical seconds between two transmissions, when the hardware sends rarely (ADR-010).
+    transmit_interval_seconds: int | None = None
 
 
 @dataclass(frozen=True)
@@ -328,6 +330,8 @@ _ALL_PROFILES: tuple[DeviceProfile, ...] = (
         model_code="MA 10650",
         display_name="Wireless Rain Gauge",
         manufacturer="Mobile Alerts",
+        # Observed live: about every 2 hours, not every 7 minutes (ADR-010).
+        transmit_interval_seconds=7200,
         channels=(
             _ch_temp("t1", "temperature"),
             ChannelSpec(
